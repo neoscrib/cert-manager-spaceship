@@ -1,0 +1,283 @@
+---
+# Source: cert-manager-webhook-spaceship/templates/rbac.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cert-manager-webhook-spaceship
+  namespace: "default"
+  labels:
+    app: cert-manager-webhook-spaceship
+    chart: cert-manager-webhook-spaceship-0.1.0
+    release: cert-manager-spaceship
+    heritage: Helm
+---
+# Source: cert-manager-webhook-spaceship/templates/rbac.yaml
+# Grant cert-manager permission to validate using our apiserver
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cert-manager-webhook-spaceship:domain-solver
+  labels:
+    app: cert-manager-webhook-spaceship
+    chart: cert-manager-webhook-spaceship-0.1.0
+    release: cert-manager-spaceship
+    heritage: Helm
+rules:
+  - apiGroups:
+      - acme.spaceship.neoscrib.com
+    resources:
+      - '*'
+    verbs:
+      - 'create'
+---
+# Source: cert-manager-webhook-spaceship/templates/rbac.yaml
+# apiserver gets the auth-delegator role to delegate auth decisions to
+# the core apiserver
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: cert-manager-webhook-spaceship:auth-delegator
+  labels:
+    app: cert-manager-webhook-spaceship
+    chart: cert-manager-webhook-spaceship-0.1.0
+    release: cert-manager-spaceship
+    heritage: Helm
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:auth-delegator
+subjects:
+  - apiGroup: ""
+    kind: ServiceAccount
+    name: cert-manager-webhook-spaceship
+    namespace: default
+---
+# Source: cert-manager-webhook-spaceship/templates/rbac.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: cert-manager-webhook-spaceship:domain-solver
+  labels:
+    app: cert-manager-webhook-spaceship
+    chart: cert-manager-webhook-spaceship-0.1.0
+    release: cert-manager-spaceship
+    heritage: Helm
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cert-manager-webhook-spaceship:domain-solver
+subjects:
+  - apiGroup: ""
+    kind: ServiceAccount
+    name: cert-manager
+    namespace: cert-manager
+---
+# Source: cert-manager-webhook-spaceship/templates/rbac.yaml
+# Grant the webhook permission to read the ConfigMap containing the Kubernetes
+# apiserver's requestheader-ca-certificate.
+# This ConfigMap is automatically created by the Kubernetes apiserver.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: cert-manager-webhook-spaceship:webhook-authentication-reader
+  namespace: kube-system
+  labels:
+    app: cert-manager-webhook-spaceship
+    chart: cert-manager-webhook-spaceship-0.1.0
+    release: cert-manager-spaceship
+    heritage: Helm
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: extension-apiserver-authentication-reader
+subjects:
+  - apiGroup: ""
+    kind: ServiceAccount
+    name: cert-manager-webhook-spaceship
+    namespace: default
+---
+# Source: cert-manager-webhook-spaceship/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: cert-manager-webhook-spaceship
+  namespace: "default"
+  labels:
+    app: cert-manager-webhook-spaceship
+    chart: cert-manager-webhook-spaceship-0.1.0
+    release: cert-manager-spaceship
+    heritage: Helm
+spec:
+  type: ClusterIP
+  ports:
+    - port: 443
+      targetPort: https
+      protocol: TCP
+      name: https
+  selector:
+    app: cert-manager-webhook-spaceship
+    release: cert-manager-spaceship
+---
+# Source: cert-manager-webhook-spaceship/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cert-manager-webhook-spaceship
+  namespace: "default"
+  labels:
+    app: cert-manager-webhook-spaceship
+    chart: cert-manager-webhook-spaceship-0.1.0
+    release: cert-manager-spaceship
+    heritage: Helm
+spec:
+  replicas: 
+  selector:
+    matchLabels:
+      app: cert-manager-webhook-spaceship
+      release: cert-manager-spaceship
+  template:
+    metadata:
+      labels:
+        app: cert-manager-webhook-spaceship
+        release: cert-manager-spaceship
+    spec:
+      serviceAccountName: cert-manager-webhook-spaceship
+      containers:
+        - name: cert-manager-webhook-spaceship
+          image: "neoscrib/cert-manager-webhook-spaceship:latest"
+          imagePullPolicy: IfNotPresent
+          args:
+            - --tls-cert-file=/tls/tls.crt
+            - --tls-private-key-file=/tls/tls.key
+          env:
+            - name: GROUP_NAME
+              value: "acme.spaceship.neoscrib.com"
+            - name: SPACESHIP_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: "spaceship-api-key"
+                  key: "api-key"
+            - name: SPACESHIP_API_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: "spaceship-api-key"
+                  key: "api-secret"
+          ports:
+            - name: https
+              containerPort: 443
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              scheme: HTTPS
+              path: /healthz
+              port: https
+          readinessProbe:
+            httpGet:
+              scheme: HTTPS
+              path: /healthz
+              port: https
+          volumeMounts:
+            - name: certs
+              mountPath: /tls
+              readOnly: true
+          resources:
+            null
+      volumes:
+        - name: certs
+          secret:
+            secretName: cert-manager-webhook-spaceship-webhook-tls
+---
+# Source: cert-manager-webhook-spaceship/templates/apiservice.yaml
+apiVersion: apiregistration.k8s.io/v1
+kind: APIService
+metadata:
+  name: v1alpha1.acme.spaceship.neoscrib.com
+  labels:
+    app: cert-manager-webhook-spaceship
+    chart: cert-manager-webhook-spaceship-0.1.0
+    release: cert-manager-spaceship
+    heritage: Helm
+  annotations:
+    cert-manager.io/inject-ca-from: "default/cert-manager-webhook-spaceship-webhook-tls"
+spec:
+  group: acme.spaceship.neoscrib.com
+  groupPriorityMinimum: 1000
+  versionPriority: 15
+  service:
+    name: cert-manager-webhook-spaceship
+    namespace: default
+  version: v1alpha1
+---
+# Source: cert-manager-webhook-spaceship/templates/pki.yaml
+# Generate a CA Certificate used to sign certificates for the webhook
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: cert-manager-webhook-spaceship-ca
+  namespace: "default"
+  labels:
+    app: cert-manager-webhook-spaceship
+    chart: cert-manager-webhook-spaceship-0.1.0
+    release: cert-manager-spaceship
+    heritage: Helm
+spec:
+  secretName: cert-manager-webhook-spaceship-ca
+  duration: 43800h # 5y
+  issuerRef:
+    name: cert-manager-webhook-spaceship-selfsign
+  commonName: "ca.cert-manager-webhook-spaceship.cert-manager"
+  isCA: true
+---
+# Source: cert-manager-webhook-spaceship/templates/pki.yaml
+# Finally, generate a serving certificate for the webhook to use
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: cert-manager-webhook-spaceship-webhook-tls
+  namespace: "default"
+  labels:
+    app: cert-manager-webhook-spaceship
+    chart: cert-manager-webhook-spaceship-0.1.0
+    release: cert-manager-spaceship
+    heritage: Helm
+spec:
+  secretName: cert-manager-webhook-spaceship-webhook-tls
+  duration: 8760h # 1y
+  issuerRef:
+    name: cert-manager-webhook-spaceship-ca
+  dnsNames:
+  - cert-manager-webhook-spaceship
+  - cert-manager-webhook-spaceship.default
+  - cert-manager-webhook-spaceship.default.svc
+---
+# Source: cert-manager-webhook-spaceship/templates/pki.yaml
+# Create a selfsigned Issuer, in order to create a root CA certificate for
+# signing webhook serving certificates
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: cert-manager-webhook-spaceship-selfsign
+  namespace: "default"
+  labels:
+    app: cert-manager-webhook-spaceship
+    chart: cert-manager-webhook-spaceship-0.1.0
+    release: cert-manager-spaceship
+    heritage: Helm
+spec:
+  selfSigned: {}
+---
+# Source: cert-manager-webhook-spaceship/templates/pki.yaml
+# Create an Issuer that uses the above generated CA certificate to issue certs
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: cert-manager-webhook-spaceship-ca
+  namespace: "default"
+  labels:
+    app: cert-manager-webhook-spaceship
+    chart: cert-manager-webhook-spaceship-0.1.0
+    release: cert-manager-spaceship
+    heritage: Helm
+spec:
+  ca:
+    secretName: cert-manager-webhook-spaceship-ca
