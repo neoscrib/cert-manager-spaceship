@@ -37,6 +37,7 @@ manifest: $(OUT)/manifest.yaml
 $(OUT)/manifest.yaml: $(HELM_FILES) | $(OUT)
 	helm template \
 	  cert-manager-spaceship \
+	  --namespace cert-manager \
       deploy/cert-manager-spaceship > $@
 
 _test $(OUT) _test/kubebuilder-$(KUBEBUILDER_VERSION)-$(OS)-$(ARCH):

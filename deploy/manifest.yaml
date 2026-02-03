@@ -4,7 +4,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: cert-manager-webhook-spaceship
-  namespace: "default"
+  namespace: "cert-manager"
   labels:
     app: cert-manager-webhook-spaceship
     chart: cert-manager-webhook-spaceship-0.1.0
@@ -50,7 +50,7 @@ subjects:
   - apiGroup: ""
     kind: ServiceAccount
     name: cert-manager-webhook-spaceship
-    namespace: default
+    namespace: cert-manager
 ---
 # Source: cert-manager-webhook-spaceship/templates/rbac.yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -94,14 +94,14 @@ subjects:
   - apiGroup: ""
     kind: ServiceAccount
     name: cert-manager-webhook-spaceship
-    namespace: default
+    namespace: cert-manager
 ---
 # Source: cert-manager-webhook-spaceship/templates/service.yaml
 apiVersion: v1
 kind: Service
 metadata:
   name: cert-manager-webhook-spaceship
-  namespace: "default"
+  namespace: "cert-manager"
   labels:
     app: cert-manager-webhook-spaceship
     chart: cert-manager-webhook-spaceship-0.1.0
@@ -123,7 +123,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: cert-manager-webhook-spaceship
-  namespace: "default"
+  namespace: "cert-manager"
   labels:
     app: cert-manager-webhook-spaceship
     chart: cert-manager-webhook-spaceship-0.1.0
@@ -198,14 +198,14 @@ metadata:
     release: cert-manager-spaceship
     heritage: Helm
   annotations:
-    cert-manager.io/inject-ca-from: "default/cert-manager-webhook-spaceship-webhook-tls"
+    cert-manager.io/inject-ca-from: "cert-manager/cert-manager-webhook-spaceship-webhook-tls"
 spec:
   group: acme.spaceship.neoscrib.com
   groupPriorityMinimum: 1000
   versionPriority: 15
   service:
     name: cert-manager-webhook-spaceship
-    namespace: default
+    namespace: cert-manager
   version: v1alpha1
 ---
 # Source: cert-manager-webhook-spaceship/templates/pki.yaml
@@ -214,7 +214,7 @@ apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: cert-manager-webhook-spaceship-ca
-  namespace: "default"
+  namespace: "cert-manager"
   labels:
     app: cert-manager-webhook-spaceship
     chart: cert-manager-webhook-spaceship-0.1.0
@@ -234,7 +234,7 @@ apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: cert-manager-webhook-spaceship-webhook-tls
-  namespace: "default"
+  namespace: "cert-manager"
   labels:
     app: cert-manager-webhook-spaceship
     chart: cert-manager-webhook-spaceship-0.1.0
@@ -247,8 +247,8 @@ spec:
     name: cert-manager-webhook-spaceship-ca
   dnsNames:
   - cert-manager-webhook-spaceship
-  - cert-manager-webhook-spaceship.default
-  - cert-manager-webhook-spaceship.default.svc
+  - cert-manager-webhook-spaceship.cert-manager
+  - cert-manager-webhook-spaceship.cert-manager.svc
 ---
 # Source: cert-manager-webhook-spaceship/templates/pki.yaml
 # Create a selfsigned Issuer, in order to create a root CA certificate for
@@ -257,7 +257,7 @@ apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
   name: cert-manager-webhook-spaceship-selfsign
-  namespace: "default"
+  namespace: "cert-manager"
   labels:
     app: cert-manager-webhook-spaceship
     chart: cert-manager-webhook-spaceship-0.1.0
@@ -272,7 +272,7 @@ apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
   name: cert-manager-webhook-spaceship-ca
-  namespace: "default"
+  namespace: "cert-manager"
   labels:
     app: cert-manager-webhook-spaceship
     chart: cert-manager-webhook-spaceship-0.1.0

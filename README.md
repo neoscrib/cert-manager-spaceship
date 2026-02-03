@@ -18,21 +18,6 @@ It allows cert-manager to solve ACME DNS-01 challenges by creating and deleting
 
 ---
 
-## 🧠 How It Works
-
-cert-manager communicates with this webhook using **gRPC (HTTP/2 + Protobuf)**.
-
-Flow:
-
-1. cert-manager calls `Present()` to request a TXT record
-2. Webhook calls the Spaceship DNS API to create the record
-3. cert-manager verifies the challenge via DNS
-4. cert-manager calls `CleanUp()` to remove the TXT record
-
-No external HTTP endpoints are exposed — everything runs inside the cluster.
-
----
-
 ## 📦 Installation (Helm)
 
 ### 1. Add the Helm repository
@@ -74,7 +59,7 @@ kubectl apply -f https://raw.githubusercontent.com/neoscrib/cert-manager-spacesh
 
 ## 🔐 Spaceship API Key
 
-This webhook requires a Spaceship API key and secret.
+This webhook requires a Spaceship API key and secret. Login to [Spaceship API Manager](https://www.spaceship.com/application/api-manager/) to create an API key.
 
 ### Option A: Use an existing Secret (recommended)
 
@@ -111,17 +96,19 @@ helm install spaceship-webhook spaceship-webhook/cert-manager-webhook-spaceship 
 
 ## 📄 Example ClusterIssuer
 
+Production
+
 ```yaml
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
-  name: letsencrypt-spaceship
+  name: letsencrypt-prod-spaceship
 spec:
   acme:
-    email: admin@example.com
+    email: admin@example.com # replace with your email address
     server: https://acme-v02.api.letsencrypt.org/directory
     privateKeySecretRef:
-      name: letsencrypt-spaceship-key
+      name: letsencrypt-prod-spaceship-key
     solvers:
       - dns:
           webhook:
@@ -129,8 +116,25 @@ spec:
             solverName: spaceship
 ```
 
-> No service name or URL is required — the webhook is discovered via
-> the aggregated `APIService` registered by this chart.
+Staging
+
+```yaml
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-staging-spaceship
+spec:
+  acme:
+    email: admin@example.com # replace with your email address
+    server: https://acme-staging-v02.api.letsencrypt.org/directory
+    privateKeySecretRef:
+      name: letsencrypt-staging-spaceship-key
+    solvers:
+      - dns:
+          webhook:
+            groupName: acme.spaceship.neoscrib.com
+            solverName: spaceship
+```
 
 ---
 
@@ -148,28 +152,6 @@ secrets:
     apiKeyKey: api-key
     apiSecretKey: api-secret
 ```
-
----
-
-## 🪵 Logging & Debugging
-
-```bash
-kubectl logs -l app=cert-manager-spaceship -n cert-manager
-```
-
-Look for `Present` and `CleanUp` log entries.
-
----
-
-## 🧩 Why gRPC?
-
-cert-manager webhooks use **gRPC** to provide:
-
-- Strongly typed contracts
-- Efficient communication
-- Language-agnostic implementations
-
-While this is heavier than HTTP+JSON, it ensures consistency across solvers.
 
 ---
 
