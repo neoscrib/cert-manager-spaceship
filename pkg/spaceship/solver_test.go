@@ -42,7 +42,7 @@ func TestSolverPresent(t *testing.T) {
 	if len(stub.addArgs) != 3 {
 		t.Fatalf("addArgs len = %d", len(stub.addArgs))
 	}
-	if stub.addArgs[0] != "example.com." || stub.addArgs[1] != "_acme-challenge.example.com." || stub.addArgs[2] != "token" {
+	if stub.addArgs[0] != "example.com" || stub.addArgs[1] != "_acme-challenge" || stub.addArgs[2] != "token" {
 		t.Fatalf("addArgs = %#v", stub.addArgs)
 	}
 	if stub.addTTL != 60 {
@@ -66,7 +66,7 @@ func TestSolverCleanUp(t *testing.T) {
 	if len(stub.removeArgs) != 3 {
 		t.Fatalf("removeArgs len = %d", len(stub.removeArgs))
 	}
-	if stub.removeArgs[0] != "example.com." || stub.removeArgs[1] != "_acme-challenge.example.com." || stub.removeArgs[2] != "token" {
+	if stub.removeArgs[0] != "example.com" || stub.removeArgs[1] != "_acme-challenge" || stub.removeArgs[2] != "token" {
 		t.Fatalf("removeArgs = %#v", stub.removeArgs)
 	}
 }

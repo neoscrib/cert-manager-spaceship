@@ -1,6 +1,8 @@
 package spaceship
 
 import (
+	"strings"
+
 	restclient "k8s.io/client-go/rest"
 
 	cmacme "github.com/cert-manager/cert-manager/pkg/acme/webhook/apis/acme/v1alpha1"
@@ -30,19 +32,33 @@ func (s *Solver) Name() string {
 func (s *Solver) Present(ch *cmacme.ChallengeRequest) error {
 	fqdn := ch.ResolvedFQDN
 	value := ch.Key
-	domain := ch.ResolvedZone
+	domain := strings.TrimSuffix(ch.ResolvedZone, ".")
+	name := recordName(domain, fqdn)
 
-	return s.client.AddTXTRecord(domain, fqdn, value, 60)
+	return s.client.AddTXTRecord(domain, name, value, 60)
 }
 
 func (s *Solver) CleanUp(ch *cmacme.ChallengeRequest) error {
 	fqdn := ch.ResolvedFQDN
 	value := ch.Key
-	domain := ch.ResolvedZone
+	domain := strings.TrimSuffix(ch.ResolvedZone, ".")
+	name := recordName(domain, fqdn)
 
-	return s.client.RemoveTXTRecord(domain, fqdn, value)
+	return s.client.RemoveTXTRecord(domain, name, value)
 }
 
 func (s *Solver) Initialize(_ *restclient.Config, _ <-chan struct{}) error {
 	return nil
+}
+
+func recordName(zone, fqdn string) string {
+	zone = strings.TrimSuffix(zone, ".")
+	fqdn = strings.TrimSuffix(fqdn, ".")
+
+	if zone == "" {
+		return fqdn
+	}
+
+	suffix := "." + zone
+	return strings.TrimSuffix(fqdn, suffix)
 }
