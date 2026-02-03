@@ -56,7 +56,7 @@ func TestMainWiresDependencies(t *testing.T) {
 	if gotKey != "key" || gotSecret != "secret" {
 		t.Fatalf("client args = %q/%q", gotKey, gotSecret)
 	}
-	if gotGroup != "spaceship-webhook" {
+	if gotGroup != "acme.spaceship.neoscrib.com" {
 		t.Fatalf("group = %q", gotGroup)
 	}
 	if len(gotHooks) != 1 || gotHooks[0] == nil {

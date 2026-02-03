@@ -21,5 +21,9 @@ func main() {
 
 	solver := newSolver(client)
 
-	runWebhookServer("spaceship-webhook", solver)
+	groupName := getenv("GROUP_NAME")
+	if groupName == "" {
+		groupName = "acme.spaceship.neoscrib.com"
+	}
+	runWebhookServer(groupName, solver)
 }

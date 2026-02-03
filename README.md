@@ -43,7 +43,7 @@ helm repo update
 ### 2. Install the webhook
 
 ```bash
-helm install spaceship-webhook spaceship-webhook/cert-manager-spaceship \
+helm install spaceship-webhook spaceship-webhook/cert-manager-webhook-spaceship \
   --namespace cert-manager \
   --create-namespace
 ```
@@ -88,7 +88,7 @@ kubectl create secret generic spaceship-api-key \
 Then install the chart:
 
 ```bash
-helm install spaceship-webhook spaceship-webhook/cert-manager-spaceship \
+helm install spaceship-webhook spaceship-webhook/cert-manager-webhook-spaceship \
   --namespace cert-manager \
   --set secrets.secretKeyRef.name=spaceship-api-key \
   --set secrets.secretKeyRef.apiKeyKey=api-key \
@@ -98,7 +98,7 @@ helm install spaceship-webhook spaceship-webhook/cert-manager-spaceship \
 ### Option B: Let the chart create the Secret
 
 ```bash
-helm install spaceship-webhook spaceship-webhook/cert-manager-spaceship \
+helm install spaceship-webhook spaceship-webhook/cert-manager-webhook-spaceship \
   --namespace cert-manager \
   --set secrets.createSecret=true \
   --set secrets.apiKey="$SPACESHIP_API_KEY" \
