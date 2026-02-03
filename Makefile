@@ -36,11 +36,8 @@ manifest: $(OUT)/manifest.yaml
 
 $(OUT)/manifest.yaml: $(HELM_FILES) | $(OUT)
 	helm template \
-	    cert-manager-spaceship \
-			--set fullnameOverride=cert-manager-webhook-spaceship \
-            --set image.repository=$(IMAGE_NAME) \
-            --set image.tag=$(IMAGE_TAG) \
-            deploy/cert-manager-spaceship > $@
+	  cert-manager-spaceship \
+      deploy/cert-manager-spaceship > $@
 
 _test $(OUT) _test/kubebuilder-$(KUBEBUILDER_VERSION)-$(OS)-$(ARCH):
 	mkdir -p $@

@@ -16,22 +16,21 @@ certManager:
 
 image:
   repository: neoscrib/cert-manager-webhook-spaceship
-  tag: latest
+  tag: ""
   pullPolicy: IfNotPresent
 
 nameOverride: ""
-fullnameOverride: ""
+fullnameOverride: cert-manager-webhook-spaceship
 
 service:
   type: ClusterIP
   port: 443
 
 secrets:
-  apiKey:
-    secretKeyRef:
-      name: spaceship-api-key
-      key: api-key
-  apiSecret:
-    secretKeyRef:
-      name: spaceship-api-key
-      key: api-secret
+  createSecret: false
+  apiKey: ""
+  apiSecret: ""
+  secretKeyRef:
+    name: spaceship-api-key
+    apiKeyKey: api-key
+    apiSecretKey: api-secret

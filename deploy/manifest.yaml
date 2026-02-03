@@ -144,7 +144,7 @@ spec:
       serviceAccountName: cert-manager-webhook-spaceship
       containers:
         - name: cert-manager-webhook-spaceship
-          image: "neoscrib/cert-manager-webhook-spaceship:latest"
+          image: "neoscrib/cert-manager-webhook-spaceship:0.1.0"
           imagePullPolicy: IfNotPresent
           args:
             - --tls-cert-file=/tls/tls.crt
