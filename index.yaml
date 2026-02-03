@@ -1,0 +1,17 @@
+apiVersion: v1
+entries:
+  cert-manager-webhook-spaceship:
+  - apiVersion: v1
+    appVersion: 0.1.0
+    created: "2026-02-02T18:53:34.372919157-06:00"
+    description: A Helm chart for Kubernetes
+    digest: fbfd919e8bdef6b45243ba6d8cdeca8d9b4810a1f2044dc668f0fb873160d264
+    keywords:
+    - cert-manager
+    - webhook
+    - spaceship
+    name: cert-manager-webhook-spaceship
+    urls:
+    - https://github.com/neoscrib/cert-manager-spaceship/releases/download/0.1.0/cert-manager-webhook-spaceship-0.1.0.tgz
+    version: 0.1.0
+generated: "2026-02-02T18:53:34.372425339-06:00"
