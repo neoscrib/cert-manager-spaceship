@@ -1,5 +1,7 @@
 # 🚀 cert-manager DNS-01 Webhook for Spaceship
 
+[![cert-manager](https://img.shields.io/badge/cert--manager-webhook-blue)](https://cert-manager.io/docs/configuration/acme/dns01/)
+
 This repository provides a **cert-manager DNS-01 webhook solver** for **Spaceship DNS** (https://spaceship.com).
 
 It allows cert-manager to solve ACME DNS-01 challenges by creating and deleting
